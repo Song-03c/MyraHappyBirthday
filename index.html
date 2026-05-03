@@ -50,7 +50,7 @@
       font-size: 50px;
       text-align: center;
       border-radius: 4px;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* 改为柔和白光 */
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
       -webkit-box-reflect: below 12px -webkit-linear-gradient(top, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%);
       transform-style: preserve-3d;
       transition: transform 1s ease, box-shadow 0.3s;
@@ -137,7 +137,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 0;
+      z-index: 1;
       overflow: hidden;
       pointer-events: none;
     }
@@ -172,7 +172,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 5;
+      z-index: 2;
       pointer-events: none;
     }
 
@@ -183,7 +183,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 6;
+      z-index: 3;
       pointer-events: none;
     }
 
@@ -240,6 +240,7 @@
       }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
   <!-- 祝福标语 -->
@@ -278,13 +279,13 @@
   <script>
     (function() {
       // ==================== 可配置参数 ====================
-      const PHOTO_COUNT = 10;                // 照片数量
-      const PHOTO_PATH = 'img/';             // 照片路径
-      const PHOTO_EXT = '.jpg';              // 照片扩展名
-      const BLESS_TEXT = '🎂 Myra，Happy Birthday！ 🎂'; // 祝福语
-      const PETAL_COUNT = 30;                // 飘落表情数量（可自由修改）
-      const METEOR_COUNT = 25;               // 流星数量
-      const EMOJI_LIST = ['🌸',  '🎂',   '❤️', '✨']; // 飘落表情列表
+      const PHOTO_COUNT = 10;
+      const PHOTO_PATH = 'img/';
+      const PHOTO_EXT = '.jpg';
+      const BLESS_TEXT = '🎂 Myra，Happy Birthday！ 🎂';
+      const PETAL_COUNT = 30;
+      const METEOR_COUNT = 25;
+      const EMOJI_LIST = ['🌸', '🎂', '❤️', '✨'];
 
       // ==================== 初始化 3D 相册 ====================
       function initAlbum() {
@@ -292,7 +293,7 @@
         const divs = box.querySelectorAll('div:not(.floor-shadow)');
         const photoPreview = document.getElementById('photoPreview');
         const previewImg = document.getElementById('previewImg');
-        
+
         for (let i = 0; i < divs.length; i++) {
           const div = divs[i];
           const imgUrl = `${PHOTO_PATH}${i + 1}${PHOTO_EXT}`;
@@ -301,7 +302,6 @@
           div.style.transform = `rotateY(${angle}deg) translateZ(350px)`;
           div.style.transition = `transform 1s ${(divs.length - i) * 0.15}s ease, box-shadow 0.3s`;
 
-          // 点击照片放大
           div.addEventListener('click', (e) => {
             e.stopPropagation();
             previewImg.src = imgUrl;
@@ -309,12 +309,10 @@
           });
         }
 
-        // 点击预览层关闭
         photoPreview.addEventListener('click', () => {
           photoPreview.classList.remove('active');
         });
 
-        // 拖拽旋转逻辑
         let isDragging = false;
         let lastX = 0, lastY = 0;
         let speedX = 0, speedY = 0;
@@ -389,7 +387,6 @@
           }, 16);
         });
 
-        // 触摸事件
         box.addEventListener('touchstart', (e) => {
           isDragging = true;
           autoRotate = false;
@@ -440,7 +437,6 @@
           }, 16);
         });
 
-        // 滚轮缩放
         let perspectiveValue = 1200;
         document.body.style.perspective = perspectiveValue + 'px';
         window.addEventListener('wheel', (e) => {
@@ -451,7 +447,6 @@
           document.body.style.perspective = perspectiveValue + 'px';
         }, { passive: false });
 
-        // 启动自动旋转
         startAutoRotate();
       }
 
@@ -542,7 +537,7 @@
         });
       }
 
-      // ==================== 烟花爆炸特效 ====================
+      // ==================== 烟花爆炸特效（全新升级版 - 粒子自带拖尾） ====================
       function initFireworks() {
         const canvas = document.getElementById('fireworkCanvas');
         const ctx = canvas.getContext('2d');
@@ -553,29 +548,106 @@
 
         const particles = [];
 
+        // 绚烂色彩调色板
+        const colorPalettes = [
+          [0, 15, 30, 45, 60],
+          [180, 200, 220, 240, 260],
+          [280, 300, 320, 340, 360],
+          [0, 60, 120, 180, 240, 300],
+          [30, 40, 50, 55, 60],
+          [140, 160, 170, 180, 200]
+        ];
+
+        function getRandomColor() {
+          const palette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+          const hue = palette[Math.floor(Math.random() * palette.length)];
+          const saturation = 70 + Math.random() * 30;
+          const lightness = 50 + Math.random() * 30;
+          return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        }
+
         class Particle {
-          constructor(x, y) {
+          constructor(x, y, isTrail = false) {
             this.x = x;
             this.y = y;
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 2 + Math.random() * 6;
-            this.vx = Math.cos(angle) * speed;
-            this.vy = Math.sin(angle) * speed;
-            this.size = 2 + Math.random() * 4;
-            this.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
-            this.life = 1;
-            this.decay = 0.01 + Math.random() * 0.03;
+            this.isTrail = isTrail;
+            this.history = []; // 拖尾历史位置
+            this.maxHistory = isTrail ? 6 : 10;
+
+            if (isTrail) {
+              const angle = Math.random() * Math.PI * 2;
+              const speed = 0.5 + Math.random() * 2;
+              this.vx = Math.cos(angle) * speed;
+              this.vy = Math.sin(angle) * speed;
+              this.size = 1 + Math.random() * 2;
+              this.color = getRandomColor();
+              this.life = 1;
+              this.decay = 0.008 + Math.random() * 0.012;
+              this.gravity = 0.02;
+            } else {
+              const angle = Math.random() * Math.PI * 2;
+              const speed = 2 + Math.random() * 7;
+              this.vx = Math.cos(angle) * speed;
+              this.vy = Math.sin(angle) * speed;
+              this.size = 2 + Math.random() * 5;
+              this.color = getRandomColor();
+              this.life = 1;
+              this.decay = 0.008 + Math.random() * 0.025;
+              this.gravity = 0.08 + Math.random() * 0.05;
+              this.bounce = 0.6;
+            }
           }
+
           update() {
+            // 保存历史位置用于拖尾
+            this.history.push({ x: this.x, y: this.y });
+            if (this.history.length > this.maxHistory) {
+              this.history.shift();
+            }
+
             this.x += this.vx;
             this.y += this.vy;
-            this.vy += 0.1; // 重力
+            this.vy += this.gravity;
+            this.vx *= 0.985;
             this.life -= this.decay;
+
+            if (!this.isTrail) {
+              if (this.x < 0 || this.x > width) {
+                this.vx *= -this.bounce;
+                this.x = Math.max(0, Math.min(width, this.x));
+              }
+              if (this.y > height) {
+                this.vy *= -this.bounce;
+                this.y = height;
+              }
+            }
           }
+
           draw(ctx) {
+            // 绘制拖尾
+            if (this.history.length > 1) {
+              for (let i = 0; i < this.history.length - 1; i++) {
+                const alpha = (i / this.history.length) * this.life * (this.isTrail ? 0.3 : 0.6);
+                const lineWidth = (i / this.history.length) * this.size * 0.8;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = Math.max(0.5, lineWidth);
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(this.history[i].x, this.history[i].y);
+                ctx.lineTo(this.history[i + 1].x, this.history[i + 1].y);
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+
+            // 绘制粒子本体
             ctx.save();
-            ctx.globalAlpha = this.life;
+            ctx.globalAlpha = this.life * (this.isTrail ? 0.5 : 1);
             ctx.fillStyle = this.color;
+            ctx.shadowBlur = this.isTrail ? 6 : 15;
+            ctx.shadowColor = this.color;
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
             ctx.fill();
@@ -598,15 +670,37 @@
 
         animate();
 
-        // 点击背景生成烟花
+        // 点击背景空白处绽放烟花（精确触发区域判断）
         document.body.addEventListener('click', (e) => {
-          // 避免点到按钮、相册、预览层等元素时触发
-          if (e.target === document.body || e.target === canvas || e.target.id === 'petalCanvas') {
-            const x = e.clientX;
-            const y = e.clientY;
-            for (let i = 0; i < 50; i++) {
-              particles.push(new Particle(x, y));
+          const target = e.target;
+
+          let shouldBlock = false;
+          let node = target;
+          while (node && node !== document.body) {
+            if (node.id === 'box' || 
+                node.id === 'musicBtn' || 
+                node.id === 'photoPreview' ||
+                node.id === 'previewImg' ||
+                (node.parentElement && node.parentElement.id === 'box' && node.className !== 'floor-shadow')) {
+              shouldBlock = true;
+              break;
             }
+            node = node.parentElement;
+          }
+
+          if (shouldBlock) return;
+
+          const x = e.clientX;
+          const y = e.clientY;
+
+          // 80个主爆炸粒子
+          for (let i = 0; i < 80; i++) {
+            particles.push(new Particle(x, y, false));
+          }
+
+          // 40个拖尾粒子
+          for (let i = 0; i < 40; i++) {
+            particles.push(new Particle(x, y, true));
           }
         });
 
